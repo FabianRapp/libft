@@ -19,6 +19,7 @@
 # include <stdarg.h>
 # include <stdio.h>
 # include <stdint.h>
+# include <errno.h>
 
 /**************************   BASIC C FUNCTIONS   ***************************/
 int		ft_isalpha(int c);
@@ -103,7 +104,22 @@ int		ft_printf_handle_x(va_list *arg, int *written_bytes, int fd);
 int		ft_printf_handle_xx(va_list *arg, int *written_bytes, int fd);
 
 
+/**********************   DYNAMIC AARRY *************************************/
 char	*get_next_line(int fd, bool do_cleanup);
+
+typedef struct s_dyn_header
+{
+	size_t		len;
+	uint8_t		size;
+	char		data[];
+}	t_dyn_header;
+
+void	dyn_arr_free(void **arr);
+void	*dyn_arr_init(uint8_t data_size, size_t init_len);
+int		dyn_arr_add_save(void **arr, void *data, size_t index);
+size_t	dyn_arr_get_len(void *arr);
+size_t	dyn_arr_get_size(void *arr);
+int		dyn_arr_resize(void **arr);
 
 /**************************   MINISHELL ADDITIONS   **************************/
 bool	contains_non_white_spcace(char *str);
