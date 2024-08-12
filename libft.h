@@ -104,7 +104,7 @@ int		ft_printf_handle_x(va_list *arg, int *written_bytes, int fd);
 int		ft_printf_handle_xx(va_list *arg, int *written_bytes, int fd);
 
 
-/**********************   DYNAMIC AARRY *************************************/
+/***********************   DYNAMIC AARRY *************************************/
 char	*get_next_line(int fd, bool do_cleanup);
 
 typedef struct s_dyn_header
@@ -120,6 +120,27 @@ int		dyn_arr_add_save(void **arr, void *data, size_t index);
 size_t	dyn_arr_get_len(void *arr);
 size_t	dyn_arr_get_size(void *arr);
 int		dyn_arr_resize(void **arr);
+
+
+/*****************************   QUEUE   *************************************/
+
+
+typedef struct s_queue	t_queue;
+typedef struct s_queue
+{
+	void	**buffer;
+	size_t	len;
+	size_t	capacity;
+	size_t	head_index;
+	size_t	tail_index;
+}	t_queue;
+
+// returns NULL on malloc error
+t_queue	*init_queue(size_t capacity);
+//returns -1 if the queue is full
+int8_t	enque(t_queue *queue, void *data);
+void	*deque(t_queue *queue);
+void	free_queue(t_queue **queue);
 
 /**************************   MINISHELL ADDITIONS   **************************/
 bool	contains_non_white_spcace(char *str);
