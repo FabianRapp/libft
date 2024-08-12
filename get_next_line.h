@@ -8,6 +8,7 @@
 # ifndef BUFFER_SIZE
 #  define BUFFER_SIZE 10000
 # endif
+
 typedef struct s_get_next_line	t_get_next_line;
 typedef struct s_get_next_line
 {
@@ -23,7 +24,9 @@ typedef struct s_get_next_line
 	t_get_next_line	*next;
 }	t_get_next_line;
 
-
-char	*get_next_line(int fd, bool do_cleanup);
+char			*get_next_line(int fd, bool do_cleanup);
+void			*cleanup(t_get_next_line **list, int fd);
+void			cleanup_all(t_get_next_line **list);
+t_get_next_line	*get_current(t_get_next_line **list, int fd);
 
 #endif

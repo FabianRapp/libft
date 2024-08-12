@@ -13,7 +13,8 @@
 #include "libft.h"
 
 //return false on error
-// *arr has to be dynamicly allocated and was freed if this function returns true
+// *arr has to be dynamicly allocated and was freed if this 
+// function returns true
 // *new_data does not have to be dynamic memory and is not freeed
 // in case of a malloc error this fucntion only frees memory it allocated
 bool	arr_append(void **arr, void *new_data, int data_size, int old_arr_len)
@@ -37,4 +38,3 @@ bool	arr_append(void **arr, void *new_data, int data_size, int old_arr_len)
 	*arr = new;
 	return (true);
 }
-

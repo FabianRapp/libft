@@ -103,7 +103,6 @@ int		ft_printf_handle_u(va_list *arg, int *written_bytes, int fd);
 int		ft_printf_handle_x(va_list *arg, int *written_bytes, int fd);
 int		ft_printf_handle_xx(va_list *arg, int *written_bytes, int fd);
 
-
 /***********************   DYNAMIC AARRY *************************************/
 char	*get_next_line(int fd, bool do_cleanup);
 
@@ -121,9 +120,7 @@ size_t	dyn_arr_get_len(void *arr);
 size_t	dyn_arr_get_size(void *arr);
 int		dyn_arr_resize(void **arr);
 
-
 /*****************************   QUEUE   *************************************/
-
 
 typedef struct s_queue	t_queue;
 typedef struct s_queue
