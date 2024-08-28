@@ -137,7 +137,7 @@ t_queue	*init_que(size_t capacity);
 //returns -1 if the queue is full
 int8_t	enque(t_queue *queue, void *data);
 void	*deque(t_queue *queue);
-void	free_queue(t_queue **queue);
+void	free_que(t_queue **queue);
 
 /**************************   MINISHELL ADDITIONS   **************************/
 bool	contains_non_white_spcace(char *str);
