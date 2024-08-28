@@ -133,7 +133,7 @@ typedef struct s_queue
 }	t_queue;
 
 // returns NULL on malloc error
-t_queue	*init_queue(size_t capacity);
+t_queue	*init_que(size_t capacity);
 //returns -1 if the queue is full
 int8_t	enque(t_queue *queue, void *data);
 void	*deque(t_queue *queue);
