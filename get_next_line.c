@@ -106,7 +106,7 @@ char	*get_next_line(int fd, bool do_cleanup)
 
 	if (do_cleanup)
 	{
-		cleanup(&list, fd);
+		cleanup_get_next_line(&list, fd);
 		return (NULL);
 	}
 	if (fd < 0)

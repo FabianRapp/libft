@@ -27,7 +27,7 @@ t_get_next_line	*get_current(t_get_next_line **list, int fd)
 	return (new);
 }
 
-void	cleanup_all(t_get_next_line **list)
+void	cleanup_all_get_next_line(t_get_next_line **list)
 {
 	t_get_next_line	*cur;
 	t_get_next_line	*next;
@@ -46,12 +46,12 @@ void	cleanup_all(t_get_next_line **list)
 }
 
 // always returns NULL
-void	*cleanup(t_get_next_line **list, int fd)
+void	*cleanup_get_next_line(t_get_next_line **list, int fd)
 {
 	t_get_next_line	*cur;
 
 	if (fd == -1 || !*list)
-		return (cleanup_all(list), NULL);
+		return (cleanup_all_get_next_line(list), NULL);
 	cur = *list;
 	if (cur->fd == fd)
 	{

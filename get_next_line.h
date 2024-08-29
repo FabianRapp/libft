@@ -25,8 +25,8 @@ typedef struct s_get_next_line
 }	t_get_next_line;
 
 char			*get_next_line(int fd, bool do_cleanup);
-void			*cleanup(t_get_next_line **list, int fd);
-void			cleanup_all(t_get_next_line **list);
+void			*cleanup_get_next_line(t_get_next_line **list, int fd);
+void			cleanup_all_get_next_line(t_get_next_line **list);
 t_get_next_line	*get_current(t_get_next_line **list, int fd);
 
 #endif
