@@ -139,6 +139,10 @@ int8_t	enque(t_queue *queue, void *data);
 void	*deque(t_queue *queue);
 void	free_que(t_queue **queue);
 
+/*****************************   OTHERS  *************************************/
+
+void	ft_assert(bool cond, char *file, int line, char *msg);
+
 /**************************   MINISHELL ADDITIONS   **************************/
 bool	contains_non_white_spcace(char *str);
 void	*ft_realloc_copy_until_zeroed(void *ptr,
