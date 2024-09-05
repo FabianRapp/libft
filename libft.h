@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   libft.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: frapp <fabi@student.42.fr>                 +#+  +:+       +#+        */
+/*   By: iziane <iziane@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/05 22:22:26 by frapp             #+#    #+#             */
-/*   Updated: 2024/05/21 19:05:57 by frapp            ###   ########.fr       */
+/*   Updated: 2024/09/05 16:35:40 by iziane           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,12 @@ char	*ft_strdup(const char *s1);
 char	*ft_strndup(const char *s1, size_t max_size);
 void	ft_free_2darr(char **array);
 size_t	ft_strarr_size(char **ptr);
+
+/**************************   Ilies (iziane)   ***************************/
+double	atod(char *str);
+void	ft_free_2d_index(char **str, int index);
+int		count_words(const char *str);
+/**************************   Ilies (iziane)   ***************************/
 
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 char	*ft_strjoin(char const *s1, char const *s2);
