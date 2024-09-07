@@ -74,7 +74,7 @@ char	**ft_split_fn(char const *s, bool is_sep(char));
 char	*ft_itoa(int n);
 char	*ft_strmapi(char const *s, char (*f)(unsigned int, char));
 void	ft_striteri(char *s, void (*f)(unsigned int, char*));
-void	ft_putnbr_fd(int n, int fd);
+int		ft_putnbr_fd(int n, int fd);
 int		ft_powint(int base, int expo);
 void	*ft_memjoin(void *src1, void *src2, int size1, int size2);
 
@@ -109,16 +109,20 @@ int		ft_printf_handle_u(va_list *arg, int *written_bytes, int fd);
 int		ft_printf_handle_x(va_list *arg, int *written_bytes, int fd);
 int		ft_printf_handle_xx(va_list *arg, int *written_bytes, int fd);
 
-/***********************   DYNAMIC AARRY *************************************/
+/***********************   GET NEXT LINE *************************************/
+
 char	*get_next_line(int fd, bool do_cleanup);
 
+/***********************   DYNAMIC AARRY *************************************/
+/*
+ * private structure:
 typedef struct s_dyn_header
 {
 	size_t		len;
 	uint8_t		size;
 	char		data[];
 }	t_dyn_header;
-
+*/
 void	dyn_arr_free(void **arr);
 void	*dyn_arr_init(uint8_t data_size, size_t init_len);
 int		dyn_arr_add_save(void **arr, void *data, size_t index);
@@ -148,6 +152,8 @@ void	free_que(t_queue **queue);
 /*****************************   OTHERS  *************************************/
 
 void	ft_assert(bool cond, char *file, int line, char *msg);
+float	str_to_float(char *str);
+int	ft_put_float(int fd, float nb, size_t precision);
 
 /**************************   MINISHELL ADDITIONS   **************************/
 bool	contains_non_white_spcace(char *str);

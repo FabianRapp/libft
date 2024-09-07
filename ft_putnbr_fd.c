@@ -26,17 +26,16 @@ static void	fill_div(int *dividend)
 	dividend[9] = 1000000000;
 }
 
-static int	start(int n, int fd)
+static int	start(int n, int fd, int *written_chars)
 {
 	int		pow;
-	int		read_val;
 
-	read_val = 0;
+	*written_chars = 0;
 	if (n < 0)
-		read_val = write(fd, "-", 1);
+		*written_chars = write(fd, "-", 1);
 	else if (n == 0)
-		read_val = write(fd, "0", 1);
-	if (read_val < 0)
+		*written_chars = write(fd, "0", 1);
+	if (*written_chars < 0)
 		return (-1);
 	pow = 0;
 	while (n)
@@ -47,29 +46,27 @@ static int	start(int n, int fd)
 	return (pow);
 }
 
-void	ft_putnbr_fd(int n, int fd)
+int	ft_putnbr_fd(int n, int fd)
 {
 	int		pow;
 	int		dividend[10];
 	char	digit[1];
 	int		temp;
+	int		written_chars;
 
 	fill_div(dividend);
-	pow = start(n, fd);
-	while (pow)
+	pow = start(n, fd, &written_chars);
+	while (written_chars != -1 && pow)
 	{
 		if (n > 0)
-		{
 			temp = (n / dividend[pow - 1]);
-			*digit = '0' + temp;
-		}
 		else
-		{
-			temp = (n / dividend[pow - 1]);
-			*digit = '0' - temp;
-		}
+			temp = -1 * (n / dividend[pow - 1]);
+		*digit = '0' + temp;
 		n -= (temp * dividend[pow-- - 1]);
 		if (write(fd, digit, 1) == -1)
-			return ;
+			return (-1);
+		written_chars++;
 	}
+	return (written_chars);
 }

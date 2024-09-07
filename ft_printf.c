@@ -12,6 +12,17 @@
 
 #include "libft.h"
 
+int	ft_printf_float_wraper(va_list *arg, int *written_bytes, int fd)
+{
+	float	n;
+	int		write_ret;
+
+	n = va_arg(*arg, double);
+	write_ret = ft_put_float(fd, n, 6);
+	*written_bytes += write_ret;
+	return (write_ret);
+}
+
 int	logic_part(va_list *arg, const char **format_str,
 		int *written_bytes, int fd)
 {
@@ -31,6 +42,8 @@ int	logic_part(va_list *arg, const char **format_str,
 		return (ft_printf_handle_x(arg, written_bytes, fd));
 	else if (**format_str == 'X')
 		return (ft_printf_handle_xx(arg, written_bytes, fd));
+	else if (**format_str == 'X')
+		return (ft_printf_float_wraper(arg, written_bytes, fd));
 	else if (**format_str == '%')
 		return (ft_printf_handle_percent(written_bytes, fd));
 	*written_bytes = -1;

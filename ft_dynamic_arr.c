@@ -1,4 +1,5 @@
 #include "libft.h"
+#include "ft_dynamic_arr.h"
 
 // dynamic array withou macro functions to pass code guidelines
 /*

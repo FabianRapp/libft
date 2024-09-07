@@ -27,7 +27,8 @@ SRCS	=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
 			ft_split_wildcards.c ft_split_fn.c ft_iswhitespace.c \
 			arr_append.c ft_free.c \
 			ft_dynamic_arr.c ft_dynamic_arr2.c ft_queue.c \
-			ft_assert.c ft_free_2d.c ft_count_word.c atod.c
+			ft_assert.c ft_free_2d.c ft_count_word.c atod.c \
+			ft_put_float.c ft_str_to_float.c
 
 OBJS	=	$(SRCS:%.c=$(OBJ_DIR)%.o)
 
