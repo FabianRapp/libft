@@ -14,12 +14,8 @@ int	ft_put_float(int fd, float nb, size_t precision)
 	if (nb < 0)
 		nb *= -1;
 	nb -= (int)nb;
-	while (precision)
-	{
-		nb *= 10;
-		if (ft_putnbr_fd((int)nb, fd) == -1)
-			return (-1);
-		precision--;
-	}
+	nb *= precision;
+	if (ft_putnbr_fd((int)nb, fd) == -1)
+		return (-1);
 	return (count);
 }
