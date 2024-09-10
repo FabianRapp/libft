@@ -9,6 +9,7 @@ CYAN	=	\033[0;36m
 CLEAR	=	\033[0m
 
 OBJ_DIR	=	./obj/
+DIRS 	= ./obj/  ./obj/ft_printf
 
 SRCS	=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
 			ft_strlen.c ft_memset.c ft_bzero.c ft_memcpy.c ft_memmove.c ft_strlcpy.c \
@@ -19,10 +20,9 @@ SRCS	=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
 			ft_lstnew_bonus.c ft_lstadd_front_bonus.c ft_lstsize_bonus.c \
 			ft_lstlast_bonus.c ft_lstadd_back_bonus.c ft_lstdelone_bonus.c \
 			ft_lstclear_bonus.c ft_lstiter_bonus.c ft_lstmap_bonus.c \
-			get_next_line_utils.c get_next_line.c ft_printf.c ft_printf_handle_c.c \
-			ft_printf_handle_di.c ft_printf_handle_u.c ft_printf_handle_p.c \
-			ft_printf_handle_percent.c ft_printf_handle_s.c ft_printf_handle_x.c \
-			ft_printf_handle_xx.c ft_powint.c ft_realloc_copy_until_zeroed.c \
+			get_next_line_utils.c get_next_line.c \
+			ft_printf/ft_printf.c \
+			ft_powint.c ft_realloc_copy_until_zeroed.c \
 			ft_strarr_size.c ft_free_2darr.c ft_strjoin_free_s1.c ft_strjoin_free_both.c \
 			ft_split_wildcards.c ft_split_fn.c ft_iswhitespace.c \
 			arr_append.c ft_free.c \
@@ -32,12 +32,15 @@ SRCS	=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
 
 OBJS	=	$(SRCS:%.c=$(OBJ_DIR)%.o)
 
-$(NAME): $(OBJS)
+
+$(NAME): $(DIRS) $(SRCS) $(OBJS)
 	@ar rcs $(NAME) $(OBJS)
 	@echo "$(GREEN)libft build$(CLEAR)"
 
+$(DIRS):
+	@mkdir -p $(DIRS)
+
 $(OBJ_DIR)%.o: %.c
-	@mkdir -p $(OBJ_DIR)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
