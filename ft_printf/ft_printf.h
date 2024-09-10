@@ -30,6 +30,13 @@ typedef struct s_printf
 
 int	ft_printf(const char *format_str, ...);
 
+void	pattern(t_printf *restrict const data, const char type);
+void	ft_printf_str(t_printf *restrict const data, const char *str);
+void	ft_printf_unsigned(t_printf *restrict const data,
+						const char *const digits,
+						const uint8_t base, unsigned int long long nb);
+void	ft_printf_di(t_printf *restrict const data, int nb);
+void	ft_printf_f(t_printf *restrict const data);
 #endif
 
  

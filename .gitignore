@@ -1,8 +1,7 @@
 .cache
 compile_commands.json
 ./ft_printf/Makefile
-./ft_printf/ft_printf.h
-
+./ft_printf/main.c
 # Prerequisites
 *.d
 
