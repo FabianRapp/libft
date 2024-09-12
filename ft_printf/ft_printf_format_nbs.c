@@ -11,7 +11,6 @@ static inline void	flush_buffer(t_printf *restrict const data)
 	data->buffer.i = 0;
 }
 
-
 void	ft_printf_unsigned(t_printf *restrict const data,
 		const char *const digits, const uint8_t base, unsigned int long long nb)
 {
@@ -69,6 +68,8 @@ void	ft_printf_f(t_printf *restrict const data)
 		data->buffer.buffer[data->buffer.i++] = '-';
 		f *= -1;
 	}
+	if (f < 1.0)
+		ft_printf_unsigned(data, "0123456789", 10, 0);
 	while (f > 1.0)
 	{
 		tmp = f;
