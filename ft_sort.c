@@ -17,6 +17,8 @@ void	ft_sort(void *arr, size_t data_size, size_t arr_len,
 	size_t	j;
 	size_t	end;
 
+	if (arr_len <= 1)
+		return ;
 	end = arr_len - 1;
 	sorted = false;
 	while (!sorted)
