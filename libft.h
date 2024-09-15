@@ -149,6 +149,12 @@ int8_t	enque(t_queue *queue, void *data);
 void	*deque(t_queue *queue);
 void	free_que(t_queue **queue);
 
+/*****************************   FT_SORT  ************************************/
+
+bool	swap_float(void *a, void *b);
+void	ft_sort(void *arr, size_t data_size, size_t arr_len,
+		bool (*swap)(void *, void *));
+
 /*****************************   OTHERS  *************************************/
 
 void	ft_assert(bool cond, char *file, int line, char *msg);
