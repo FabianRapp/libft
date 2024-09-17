@@ -89,6 +89,6 @@ void	ft_printf_f(t_printf *restrict const data)
 		f -= (int)(tmp * div);
 	}
 	data->buffer.buffer[data->buffer.i++] = '.';
-	f *= 1000000;
+	f *= 100000;
 	ft_printf_unsigned(data, "0123456789", 10, (unsigned)(f + 0.5));
 }
