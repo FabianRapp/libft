@@ -70,7 +70,7 @@ void	ft_printf_f(t_printf *restrict const data)
 	}
 	if (f < 1.0)
 		ft_printf_unsigned(data, "0123456789", 10, 0);
-	while (f > 1.0)
+	while (f >= 1.0)
 	{
 		tmp = f;
 		div = 1;
