@@ -9,4 +9,5 @@ void	ft_assert(bool cond, char *file, int line, char *msg)
 		return ;
 	ft_fprintf(2, "Assert in %s line %d: %s\n:", file, line, msg);
 	__asm__("INT3\n\t");
+	// exit(1);
 }
