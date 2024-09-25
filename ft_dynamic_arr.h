@@ -8,7 +8,7 @@
 typedef struct s_dyn_header
 {
 	size_t		len;
-	uint8_t		size;
+	size_t		size;
 	char		data[];
 }	t_dyn_header;
 

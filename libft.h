@@ -124,7 +124,7 @@ typedef struct s_dyn_header
 }	t_dyn_header;
 */
 void	dyn_arr_free(void **arr);
-void	*dyn_arr_init(uint8_t data_size, size_t init_len);
+void	*dyn_arr_init(uint64_t data_size, size_t init_len);
 int		dyn_arr_add_save(void **arr, void *data, size_t index);
 size_t	dyn_arr_get_len(void *arr);
 size_t	dyn_arr_get_size(void *arr);

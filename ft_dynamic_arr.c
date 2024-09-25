@@ -9,7 +9,7 @@
 	acess to the data in the array
 */
 // return NULL on malloc error
-void	*dyn_arr_init(uint8_t data_size, size_t init_len)
+void	*dyn_arr_init(uint64_t data_size, size_t init_len)
 {
 	t_dyn_header	*arr;
 
