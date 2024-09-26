@@ -66,7 +66,7 @@ int	dyn_arr_resize(void **arr)
 // returns non 0 on malloc error
 int	dyn_arr_add_save(void **arr, void *data, size_t index)
 {
-	uint8_t	data_size;
+	size_t	data_size;
 
 	data_size = dyn_arr_get_size(*arr);
 	if (dyn_arr_get_len(*arr) <= index)
