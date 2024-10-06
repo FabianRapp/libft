@@ -1,4 +1,4 @@
-# include "ft_printf.h"
+#include "ft_printf.h"
 
 static inline void	flush_buffer(t_printf *restrict const data)
 {
@@ -38,7 +38,6 @@ static void	put_format_to_buf(t_printf *restrict const data)
 
 static int	ft_printf_base(t_printf *restrict const data)
 {
-
 	while (*data->format && data->return_val != -1)
 	{
 		put_format_to_buf(data);

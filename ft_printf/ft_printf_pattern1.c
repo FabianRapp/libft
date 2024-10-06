@@ -13,13 +13,11 @@ static inline void	flush_buffer(t_printf *restrict const data)
 
 void	ft_printf_str(t_printf *restrict const data, const char *str)
 {
-
 	int				buffer_i;
 	char			*buffer;
 
 	buffer = data->buffer.buffer;
 	buffer_i = data->buffer.i;
-
 	while (*str)
 	{
 		buffer[buffer_i++] = *(str++);
@@ -33,6 +31,32 @@ void	ft_printf_str(t_printf *restrict const data, const char *str)
 		}
 	}
 	data->buffer.i = buffer_i;
+}
+
+static void	pattern2(t_printf *restrict const data, const char type)
+{
+	unsigned long long int	nb;
+
+	if (type == 'd' || type == 'i')
+		ft_printf_di(data, va_arg(data->arg, int));
+	else if (type == 'f')
+		ft_printf_f(data);
+	else if (type == 'u' || type == 'X' || type == 'x')
+	{
+		nb = va_arg(data->arg, unsigned);
+		if (type == 'u')
+			ft_printf_unsigned(data, "0123456789", 10, nb);
+		else if (type == 'X')
+			ft_printf_unsigned(data, "0123456789ABCDEF", 16, nb);
+		else
+			ft_printf_unsigned(data, "0123456789abcdef", 16, nb);
+	}
+	else if (type == 'c')
+		data->buffer.buffer[data->buffer.i++] = va_arg(data->arg, int);
+	else if (type == '%')
+		data->buffer.buffer[data->buffer.i++] = '%';
+	else
+		data->return_val = -1;
 }
 
 //assumes data->format[0] to be the format specifier after a '%'
@@ -50,10 +74,6 @@ void	pattern(t_printf *restrict const data, const char type)
 		else
 			ft_printf_str(data, str);
 	}
-	else if (type == 'd' || type == 'i')
-		ft_printf_di(data, va_arg(data->arg, int));
-	else if (type == 'f')
-		ft_printf_f(data);
 	else if (type == 'p')
 	{
 		nb = va_arg(data->arg, unsigned long long);
@@ -65,20 +85,6 @@ void	pattern(t_printf *restrict const data, const char type)
 			ft_printf_unsigned(data, "0123456789abcdef", 16, nb);
 		}
 	}
-	else if (type == 'u' || type == 'X' || type == 'x')
-	{
-		nb = va_arg(data->arg, unsigned);
-		if (type == 'u')
-			ft_printf_unsigned(data, "0123456789", 10, nb);
-		else if (type == 'X')
-			ft_printf_unsigned(data, "0123456789ABCDEF", 16, nb);
-		else
-			ft_printf_unsigned(data, "0123456789abcdef", 16, nb);
-	}
-	else if (type == 'c')
-		data->buffer.buffer[data->buffer.i++] = va_arg(data->arg, int);
-	else if (type== '%')
-		data->buffer.buffer[data->buffer.i++] = '%';
 	else
-		data->return_val = -1;
+		pattern2(data, type);
 }
