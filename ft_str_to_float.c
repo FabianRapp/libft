@@ -10,7 +10,6 @@ static size_t	nb_len(char *str_nb)
 	return (i);
 }
 
-
 float	str_to_float(char *str)
 {
 	int		integer;

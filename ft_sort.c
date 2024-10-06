@@ -1,46 +1,50 @@
 #include "libft.h"
 
-
-
 bool	swap_float(void *a, void *b)
 {
 	return (*(float *)a > *(float *)b);
 }
 
+static void	swap(size_t data_size, void *arr, size_t i)
+{
+	size_t	j;
+	uint8_t	tmp;
+
+	j = 0;
+	while (j < data_size)
+	{
+		tmp = ((uint8_t *)arr)[i * data_size + j];
+		((uint8_t *)arr)[i * data_size + j] = ((uint8_t *)arr)
+		[(i + 1) * data_size + j];
+		((uint8_t *)arr)[(i + 1) * data_size + j] = tmp;
+		j++;
+	}
+}
+
 //for now simple bouble sort
 void	ft_sort(void *arr, size_t data_size, size_t arr_len,
-		bool (*swap)(void *, void *))
+		bool (*do_swap)(void *, void *))
 {
-	size_t	i;
+	int		i;
 	bool	sorted;
-	uint8_t	tmp;
-	size_t	j;
-	size_t	end;
+	int		end;
 
 	if (arr_len <= 1)
 		return ;
-	end = arr_len - 1;
+	end = ((int) arr_len) - 1;
 	sorted = false;
 	while (!sorted)
 	{
-		i = 0;
+		i = -1;
 		sorted = true;
-		while (i < end)
+		while (++i < end)
 		{
-			if (swap(((uint8_t *)arr) + i * data_size,
-				((uint8_t *)arr) + i * data_size + data_size))
+			if (do_swap(((uint8_t *)arr) + i * data_size,
+					((uint8_t *)arr) + i * data_size + data_size))
 			{
 				sorted = false;
-				j = 0;
-				while (j < data_size)
-				{
-					tmp = ((uint8_t *)arr)[ i * data_size + j];
-					((uint8_t *)arr)[ i * data_size + j] = ((uint8_t *)arr)[ (i + 1) * data_size + j];
-					((uint8_t *)arr)[ (i + 1) * data_size + j] = tmp;
-					j++;
-				}
+				swap(data_size, arr, i);
 			}
-			i++;
 		}
 		end--;
 	}
