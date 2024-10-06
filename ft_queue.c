@@ -1,5 +1,3 @@
-
-
 #include "libft.h"
 
 // returns NULL on malloc error

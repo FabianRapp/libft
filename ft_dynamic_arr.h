@@ -1,9 +1,8 @@
-
 #ifndef FT_DYNAMIC_ARR_H
 # define FT_DYNAMIC_ARR_H
 
-#include <stdint.h>
-#include <stdlib.h>
+# include <stdint.h>
+# include <stdlib.h>
 
 typedef struct s_dyn_header
 {
