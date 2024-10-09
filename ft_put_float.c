@@ -38,6 +38,7 @@ int	ft_put_float(int fd, float f, size_t precision)
 	int		write_ret;
 
 	f = less_0(f, fd, &count);
+	write_ret = 0;
 	while (f > 1.0 && write_ret != -1)
 	{
 		tmp = f;
