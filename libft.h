@@ -20,6 +20,7 @@
 # include <stdio.h>
 # include <stdint.h>
 # include <errno.h>
+# include "libft_macros.h"
 
 /**************************   BASIC C FUNCTIONS   ***************************/
 int		ft_isalpha(int c);
