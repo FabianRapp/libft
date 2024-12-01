@@ -1,17 +1,17 @@
-NAME	=	libft.a
-CFLAGS	=	-Wall -Wextra -Werror -Ofast -march=native
+NAME	:=	libft.a
+CFLAGS	:=	-Wall -Wextra -Werror -Ofast -march=native -g
 #-fsanitize=address -g
-CC		=	cc
+CC		:=	cc
 
 GREEN	=	\033[0;32m
 YELLOW	=	\033[33m
 CYAN	=	\033[0;36m
 CLEAR	=	\033[0m
 
-OBJ_DIR	=	./obj/
-DIRS 	= ./obj/  ./obj/ft_printf
+OBJ_DIR	:=	./obj/
+DIRS 	:= ./obj/  ./obj/ft_printf
 
-SRCS	=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
+SRCS	:=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
 			ft_strlen.c ft_memset.c ft_bzero.c ft_memcpy.c ft_memmove.c ft_strlcpy.c \
 			ft_strlcat.c ft_toupper.c ft_tolower.c ft_strchr.c ft_strrchr.c ft_strncmp.c \
 			ft_memchr.c ft_memcmp.c ft_strnstr.c ft_atoi.c ft_calloc.c ft_strdup.c \
@@ -29,13 +29,17 @@ SRCS	=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
 			ft_strarr_size.c ft_free_2darr.c ft_strjoin_free_s1.c ft_strjoin_free_both.c \
 			ft_split_wildcards.c ft_split_fn.c ft_iswhitespace.c \
 			arr_append.c ft_free.c \
-			ft_dynamic_arr.c ft_dynamic_arr2.c ft_queue.c \
+			ft_dynamic_arr.c ft_queue.c \
 			ft_assert.c ft_free_2d.c ft_count_word.c atod.c \
 			ft_put_float.c ft_str_to_float.c \
 			ft_sort.c
 
-OBJS	=	$(SRCS:%.c=$(OBJ_DIR)%.o)
+OBJS	:=	$(SRCS:%.c=$(OBJ_DIR)%.o)
 
+#all: $(DIRS) $(SRCS) $(OBJS)
+#	$(CC) $(CFLAGS) $(OBJS)
+
+all: $(NAME)
 
 $(NAME): $(DIRS) $(SRCS) $(OBJS)
 	@ar rcs $(NAME) $(OBJS)
@@ -45,7 +49,7 @@ $(DIRS):
 	@mkdir -p $(DIRS)
 
 $(OBJ_DIR)%.o: %.c
-	@$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -DNDEBUG -c $< -o $@
 
 clean:
 	@rm -rf $(OBJ_DIR)
@@ -57,8 +61,6 @@ fclean:
 	@echo "$(CYAN)libft fclean$(CLEAR)"
 
 re: fclean all
-
-all: $(NAME)
 
 flags: CFLAGS += -fsanitize=undefined -fsanitize=address -g
 flags: LDFLAGS += -fsanitize=undefined -fsanitize=address -g

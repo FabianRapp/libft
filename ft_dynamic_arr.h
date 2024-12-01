@@ -15,11 +15,13 @@
 
 # include <stdint.h>
 # include <stdlib.h>
+# include <string.h>
 
 typedef struct s_dyn_header
 {
 	size_t		len;
 	size_t		size;
+	void		(*destructor)(void *);
 	char		data[];
 }	t_dyn_header;
 
