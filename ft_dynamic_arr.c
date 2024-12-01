@@ -291,7 +291,7 @@ int	main(void)
 	}
 
 	{
-		/* check destructor functionality */
+		// check destructor functionality
 		int		cmp[200];
 	
 		int **arr = dyn_arr_init2(3, sizeof(int*), 0, wrap_free);
