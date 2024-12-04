@@ -23,6 +23,8 @@
 # include "libft_macros.h"
 
 /**************************   BASIC C FUNCTIONS   ***************************/
+int		ft_is_charset(int c, char *set);
+size_t	ft_strlen_charet(char *str, char *set);
 int		ft_isalpha(int c);
 int		ft_isdigit(int c);
 int		ft_isalnum(int c);
