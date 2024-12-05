@@ -13,6 +13,14 @@
 #include "libft.h"
 #include "ft_dynamic_arr.h"
 
+// slow but fine for now
+// takes a pointer to a dyn arr
+void	write_dyn_arr(void **dest, void *src, size_t offset, size_t len) {
+	while (len--) {
+		dyn_arr_add_save(dest, src++, offset++);
+	}
+}
+
 // dynamic array
 /*
  * header:
@@ -326,3 +334,4 @@ int	main(void)
 	return (0);
 }
 */
+
