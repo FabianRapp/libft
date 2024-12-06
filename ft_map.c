@@ -33,30 +33,32 @@ size_t _next_pseudo_prime(size_t n) {
 	return ((n % 2 == 0) ? (n + 1) : (n + 2));
 }
 
-typedef struct s_map_node	t_map_node;
-/* uses a linked list for collisions */
+/* todo: remove next and put collisions to the right or left in the buffer.
+	This decreases the node size and cache misses. a node size of 16
+	would enable 64 byte alignment and maybe some smart hashing to prefetch
+	the needed cache line before computing the last 2 bits of the hash
+	(now there is only space for 3 nodes in 1 cache line). At the time
+	of writing the memory access right after the hash compution is more
+	than 50% of the run time (this access: '(map->buf + hash)->' ).
+	Also when CACHE_LINE_SIZE % sizeof(t_map_node) the align alloc can
+	be simplified to clean up the code a bit(currently it is theoretically
+	possible that it might overallocate 64 bytes, w.e.).
+*/
+
+/* assumes a 64 bit PML4 system */
 typedef struct s_map_node {
 	void			*key;
 	union {
 		void			*value;
 	struct {
-		uintptr_t	ptr_mask : 57;
-		uint8_t		next_empty : 7;
+		uintptr_t	ptr_mask : 48;
+		uint16_t	next_empty : 16;
 		};
 	};
-	/* todo: remove next and put collisions to the right or left in the buffer.
-		This decreases the node size and cache misses. a node size of 16
-		would enable 64 byte alignment and maybe some smart hashing to prefetch
-		the needed cache line before computing the last 2 bits of the hash
-		(now there is only space for 3 nodes in 1 cache line). At the time
-		of writing the memory access right after the hash compution is more
-		than 50% of the run time (this access: '(map->buf + hash)->' ).
-		Also when CACHE_LINE_SIZE % sizeof(t_map_node) the align alloc can
-		be simplified to clean up the code a bit(currently it is theoretically
-		possible that it might overallocate 64 bytes, w.e.).
-	*/
-	t_map_node		*next;
-}	__attribute__((aligned(CACHE_LINE_SIZE))) t_map_node;
+}	__attribute__((aligned(16))) t_map_node;
+
+#define MAP_NODE_GET_VAL_PTR(node) \
+	((void *)(((((uintptr_t)1) << 47) - 1) & node.ptr_mask))
 
 struct map_args {
 	uint32_t	key_size;
@@ -253,14 +255,14 @@ void	*map_get(t_map *map, void *key) {
 	if (!node->key) {
 		return (NULL);
 	}
-	while (node && _cmp_node_keys(map, node, key)) {
+	while (node->key && _cmp_node_keys(map, node, key)) {
 		assert(node->key);
-		node = node->next;
+		node++;
 #ifndef NDEBUG
 #endif // NDEBUG
 	}
-	if (node) {
-		return (node->value);
+	if (node->key) {
+		return (MAP_NODE_GET_VAL_PTR((*node)));
 	}
 	return (NULL);
 }
@@ -270,27 +272,14 @@ void	map_destruct(t_map *map) {
 	size_t	count = 0;
 #endif
 	for (size_t idx = 0; idx < map->buf_len; idx++) {
-		t_map_node	*cur = map->buf + idx;
-		t_map_node	*last;
-	
-		if (cur->key) {
-			map->free_key_fn(cur->key);
-			map->free_value_fn(cur->value);
-#ifndef NDEBUG
-			count++;
-#endif
-			cur = cur->next;
-			while (cur) {
-				last = cur;
-				cur = cur->next;
-				map->free_key_fn(last->key);
-				map->free_value_fn(last->value);
-				free(last);
-#ifndef NDEBUG
-				count++;
-#endif
-			}
+		if (!map->buf[idx].key) {
+			continue ;
 		}
+		map->free_key_fn(map->buf[idx].key);
+		map->free_value_fn(MAP_NODE_GET_VAL_PTR((map->buf[idx])));
+#ifndef NDEBUG
+		count++;
+#endif
 	}
 	free(map->buf);
 #ifndef NDEBUG
@@ -302,46 +291,26 @@ void	map_destruct(t_map *map) {
 #endif
 }
 
-void	free_buf(t_map_node *buf, size_t len) {
-	for (size_t idx = 0; idx < len; idx++) {
-		t_map_node	*cur = buf + idx;
-		if (!cur->key) {
-			continue ;
-		}
-		cur = cur->next;
-		while (cur) {
-			t_map_node	*last = cur;
-			cur = cur->next;
-			free(last);
-		}
-	}
-	free(buf);
-}
-
 //return 0 on success
 int	_try_move_buf(t_map *map, t_map_node *old_buf, size_t old_len) {
 	assert(!_too_many_collisions(map));
 	for (size_t idx = 0; idx < old_len; idx++) {
-		t_map_node	*cur_src = old_buf + idx;
-		if (!cur_src->key) {
+		if (!old_buf[idx].key) {
 			continue ;
 		}
-		while (cur_src) {
-			int val = _try_map_add(map, cur_src->key, cur_src->value);
+		int val = _try_map_add(map, old_buf[idx].key,old_buf[idx].value);
 #ifndef NDEBUG
-			assert(val >= 0);
+		assert(val >= 0);
 #endif //NDEBUG
-			if (val > 0) {
-				free_buf(map->buf, map->buf_len);
-				return (1);
-			}
-			cur_src = cur_src->next;
+		if (val > 0) {
+			free(map->buf);
+			return (1);
 		}
 	}
 #ifndef NDEBUG
 	assert(!_too_many_collisions(map));
 #endif
-	free_buf(old_buf, old_len);
+	free(old_buf);
 	return (0);
 }
 
@@ -409,41 +378,32 @@ static int	_try_map_add(t_map *map, void *key, void *value) {
 	size_t	hash = _get_hash(map, key);
 	size_t	offset = hash % map->buf_len;
 
-	t_map_node	*head = map->buf + offset;
 #ifndef NDEBUG
 	assert(!_too_many_collisions(map)
 		&& "check condition in _too_many_collisions!");
 #endif //NDEBUG
 
-	if (!head->key) {
-		head->key = key;
-		head->value = value;
+	if (!map->buf[offset].key || !_cmp_node_keys(map, map->buf + offset, key)) {
+		if (map->buf[offset].key) {
+			map->free_key_fn(key);
+			map->free_value_fn(MAP_NODE_GET_VAL_PTR(map->buf[offset]));
+		}
+		map->buf[offset].key = key;
+		map->buf[offset].value = value;
 		return (0);
 	}
-
-	t_map_node	*node = head;
-
 	map->collision_count++;
-	while (node->next && _cmp_node_keys(map, node->next, key)) {
+	offset = (offset + 1) % map->buf_len;
+	while (map->buf[offset].key && _cmp_node_keys(map, map->buf + offset, key)) {
 		map->collision_count++;
-		node = node->next;
+		offset = (offset + 1) % map->buf_len;
 	}
-	if (node->next) {
-		/* exact key was allready in map (not only same hash) */
-		map->collision_count--;
-		map->element_count--;
+	if (map->buf[offset].key) {
 		map->free_key_fn(key);
-		map->free_value_fn(node->value);
-		node->value = value;
-		return (-1);
+		map->free_value_fn(MAP_NODE_GET_VAL_PTR(map->buf[offset]));
 	}
-
-	node->next = calloc(1, sizeof(t_map_node));
-	node = node->next;
-	node->key = key;
-	node->value = value;
-	node->next = NULL;
-
+	map->buf[offset].key = key;
+	map->buf[offset].value = value;
 	if (_too_many_collisions(map)) {
 		return (1);
 	}
@@ -631,6 +591,7 @@ int	main(void) {
 	long long int n = 10000000;
 	time_t	start;
 	time_t	end;
+	printf("node size: %lu\n", sizeof(t_map_node));
 	start = time(0);
 	
 	if (!only_add(n)) {
