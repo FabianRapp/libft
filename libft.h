@@ -19,6 +19,8 @@
 # include <stdarg.h>
 # include <stdio.h>
 # include <stdint.h>
+# include <assert.h>
+# include <string.h>
 # include <errno.h>
 # include "libft_macros.h"
 
