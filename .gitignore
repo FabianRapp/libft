@@ -1,5 +1,9 @@
+test.py
 .cache
 compile_commands.json
+prof
+profiled_binary
+*.txt
 ./ft_printf/Makefile
 ./ft_printf/main.c
 # Prerequisites

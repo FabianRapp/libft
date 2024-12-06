@@ -1,6 +1,5 @@
 NAME	:=	libft.a
-#-DNDEBUG
-NDEBUG	:= 
+NDEBUG	:= -DNDEBUG
 CFLAGS	:=	-Wall -Wextra -Werror -Ofast -march=native -g -fsanitize=address $(NDEBUG)
 #-fsanitize=address -g
 CC		:=	cc
@@ -48,6 +47,14 @@ $(NAME): $(DIRS) $(SRCS) $(OBJS)
 	@ar rcs $(NAME) $(OBJS)
 	@echo "$(GREEN)libft build$(CLEAR)"
 
+prof: CFLAGSa+= -pg
+prof: LDFLAGS += -pg
+prof: $(all)
+	$(CC) $(CFLAGS) $(OBJS) ft_map.c -lm -o profiled_binary $(LDFLAGS)
+	./profiled_binary
+	gprof -l profiled_binary gmon.out > prof
+	@echo "$(YELLOW)Profile report generated in prof$(CLEAR)"
+
 $(DIRS):
 	@mkdir -p $(DIRS)
 
@@ -72,4 +79,4 @@ flags: $(NAME)
 leaks: CFLAGS += -DLEAK_CHECK=1
 leaks: $(NAME) $(OBJS)
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re prof

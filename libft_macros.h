@@ -1,6 +1,11 @@
 #ifndef LIBFT_MACROS
 # define LIBFT_MACROS
 
+# ifndef CACHE_LINE_SIZE
+#  define CACHE_LINE_SIZE 64
+# endif // CAHCE_LINE_SIZE
+
+
 
 # ifdef NDEBUG
 
