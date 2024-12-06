@@ -10,12 +10,9 @@
 # define FT_MAP_INIT_LEN 2
 #endif // FT_MAP_INIT_SIZE
 
-bool	isPrime(size_t num) {
-	if (num <= 1) {
-		return false;
-	} else if (num <= 3) {
-		return true;
-	} else if ((num % 2) == 0 || (num % 3) == 0) {
+// only for the this file, small numbers are wrong
+bool	_is_prime(size_t num) {
+	if ((num % 2) == 0 || (num % 3) == 0) {
 		return (false);
 	}
 	size_t limit = (size_t) sqrt(num);
@@ -27,13 +24,16 @@ bool	isPrime(size_t num) {
 	return (true);
 }
 
-size_t	next_prime(size_t n) {
-	n++;
-	while (!isPrime(n)) {
-		n++;
+
+size_t _next_prime(size_t n) {
+	n = (n % 2 == 0) ? (n + 1) : (n + 2);
+
+	while (!_is_prime(n)) {
+		n += 2;
 	}
 	return (n);
 }
+
 
 typedef struct s_map_node	t_map_node;
 /* uses a linked list for collisions */
@@ -65,9 +65,8 @@ int						default_cmp_str_keys(char *key1, char *key2);
 size_t					default_hash_str_fn(char *key, size_t prime);
 
 static int				_try_map_add(t_map *map, void *key, void *value);
-static bool				_handle_many_collisions(t_map *map);
+static bool				_too_many_collisions(t_map *map);
 static void				_map_resize(t_map *map);
-static inline size_t	_default_hash_fn(void *key, size_t key_size, size_t prime);
 static inline size_t	_get_hash(t_map *map, void *key);
 int						_default_cmp_keys(void *key1, void *key2,
 							size_t key_size);
@@ -91,15 +90,13 @@ void	print_map(const t_map *map) {
 	printf("  buf: %p\n", (void*)map->buf);
 }
 
-static inline size_t	_default_hash_fn(void *key, size_t key_size, size_t prime) {
-	size_t	hash = prime;
-	uint8_t	*buf = key;
+static inline size_t fnv1a_hash(const uint8_t *key, size_t length) {
+	size_t hash = 1469598103934665603ULL;
+	const size_t fnv_prime = 1099511628211ULL;
 
-#ifndef NDEBUG
-	assert(key && key_size);
-#endif // NDEBUG
-	for (size_t idx = 0; idx < key_size; idx++) {
-		hash = (hash << 5) + hash + buf[idx];
+	for (size_t i = 0; i < length; i++) {
+		hash ^= (size_t)key[i];
+		hash *= fnv_prime;
 	}
 	return (hash);
 }
@@ -124,7 +121,8 @@ static inline size_t	_get_hash(t_map *map, void *key) {
 #ifndef NDEBUG
 		assert(map->key_size);
 #endif // NDEBUG
-		hash = _default_hash_fn(key, map->key_size, map->prime);
+		hash = fnv1a_hash(key, map->key_size);
+		//hash = _default_hash_fn(key, map->key_size, map->prime);
 	}
 	return (hash);
 }
@@ -309,38 +307,46 @@ void	free_buf(t_map_node *buf, size_t len) {
 
 //return 0 on success
 int	_try_move_buf(t_map *map, t_map_node *old_buf, size_t old_len) {
+	assert(!_too_many_collisions(map));
 	for (size_t idx = 0; idx < old_len; idx++) {
-		t_map_node	*cur = old_buf + idx;
-		if (!cur->key) {
+		t_map_node	*cur_src = old_buf + idx;
+		if (!cur_src->key) {
 			continue ;
 		}
-		assert(_try_map_add(map, cur->key, cur->value) == 0);
-		cur = cur->next;
-		while (cur) {
-			if (_try_map_add(map, cur->key, cur->value) > 0) {
+		while (cur_src) {
+			int val = _try_map_add(map, cur_src->key, cur_src->value);
+#ifndef NDEBUG
+			assert(val >= 0);
+#endif //NDEBUG
+			if (val > 0) {
 				free_buf(map->buf, map->buf_len);
 				return (1);
 			}
-			cur = cur->next;
+			cur_src = cur_src->next;
 		}
 	}
+	if (_too_many_collisions(map)) {
+		assert(0);
+	}
+	free_buf(old_buf, old_len);
 	return (0);
 }
 
 // todo: refactor
 // malloc fail: sets errno and cleansup the maps data
 static void	_map_resize(t_map *map) {
-	printf("*********************************************************\n");
-	printf("resizing map:\nElement count: %lu\nCollision count: %lu\nRate: %lf\n",
-		map->element_count, map->collision_count,
-		((double)map->element_count) / map->collision_count);
+	//printf("*********************************************************\n");
+	//printf("resizing map:\nElement count: %lu\nCollision count: %lu\nRate: %lf\n",
+	//	map->element_count, map->collision_count,
+	//	((double)map->element_count) / map->collision_count);
 
 	size_t	old_len = map->buf_len;
 	t_map_node	*old_buf = map->buf;
 	
-	print_map(map);
+	size_t resizes = 0;
 	while (1) {
-		map->buf_len = next_prime(map->buf_len * 2);
+		resizes++;
+		map->buf_len = _next_prime(map->buf_len * 4);
 		//printf("new len: %lu\n", map->buf_len);
 		//printf("Old len: %lu\nNew len: %lu\n", old_len, map->buf_len);
 		map->buf = calloc(map->buf_len, sizeof(t_map_node));
@@ -360,20 +366,35 @@ static void	_map_resize(t_map *map) {
 			break ;
 		}
 	}
-	free_buf(old_buf, old_len);
 
 	//printf("After resize map:\nElement count: %lu\nCollision count: %lu\nRate: %lf\n",
 	//	map->element_count, map->collision_count,
 	//	((double)map->element_count) / map->collision_count);
 #ifndef NDEBUG
-	assert(!_handle_many_collisions(map));
+	if (_too_many_collisions(map)) {
+		assert(0);
+	}
 #endif
+	printf("resize attempts %lu\n", resizes);
 }
 
-static bool	_handle_many_collisions(t_map *map) {
-	if (map->collision_count && map->element_count > 1000
-		&& ((double)map->element_count) / map->collision_count < 0.5) {
-		return (true);
+/* hard to find bug fro before(caused logic chage from min elent count to
+	min collision count):
+ * this situation:
+	- 1.: this returns false duo to count < min count, even though there
+		are many collisons
+	- 2.: elemnets are added without collison and the element count
+		threshhold is reach while not reaching the min rate
+*/
+static bool	_too_many_collisions(t_map *map) {
+	size_t	min_collisions_to_matter = 8;
+	bool	has_min_collisons = min_collisions_to_matter <= map->collision_count;
+	double	min_rate = 4.0;
+	if (has_min_collisons) {
+		double	rate = ((double)map->element_count) / map->collision_count;
+		if (rate < min_rate) {
+			return (true);
+		}
 	}
 	return (false);
 }
@@ -386,6 +407,10 @@ static int	_try_map_add(t_map *map, void *key, void *value) {
 	size_t	offset = hash % map->buf_len;
 
 	t_map_node	*head = map->buf + offset;
+#ifndef NDEBUG
+	assert(!_too_many_collisions(map)
+		&& "check condition in _too_many_collisions!");
+#endif //NDEBUG
 
 	if (!head->key) {
 		head->key = key;
@@ -417,7 +442,7 @@ static int	_try_map_add(t_map *map, void *key, void *value) {
 	node->value = value;
 	node->next = NULL;
 
-	if (_handle_many_collisions(map)) {
+	if (_too_many_collisions(map)) {
 		return (1);
 	}
 	return (0);
@@ -431,10 +456,11 @@ static int	_try_map_add(t_map *map, void *key, void *value) {
  * 2.: returns (-1)
 */
 int	map_add(t_map *map, void *key, void *value) {
-	_try_map_add(map, key, value);
-	if (_handle_many_collisions(map)) {
-		_map_resize(map);
+	int	ret = _try_map_add(map, key, value);
+	if (ret <= 0) {
+		return (ret);
 	}
+	_map_resize(map);
 	return (0);
 }
 
@@ -464,7 +490,52 @@ bool	test_basic(long long int elements) {
 			return (false);
 		}
 	}
-	print_map(&map);
+	map_destruct(&map);
+	return (true);
+}
+
+bool	lld_rdm_keys(long long int elements) {
+	t_map	map = map_new(1, sizeof(long long));
+	long long int **keys = malloc(sizeof(long long int *) * elements);
+
+	long long int	key_conflicts = 0;
+	for (long long int i = 0; i < elements; i++) {
+		long long int	*key = malloc(sizeof(long long int));
+		long long int	*val = malloc(sizeof(long long int));
+
+		*key = ((long long)rand() << 32) | (long long)rand();
+		*val = i - elements / 2;
+		if (map_add(&map, key, val)) {
+			key_conflicts++;
+		} else {
+			keys[i] = key;
+		}
+	}
+	if (key_conflicts > elements / 100) {
+		printf("key conflicts(%lld) way too sus, check test logic!\n", key_conflicts);
+		assert(0);
+	}
+	for (long long int i = 0; i < elements; i++) {
+		long long int	*key = keys[i];
+		if (!key) {
+			continue ;
+		}
+		long long int *val = map_get(&map, key);
+		long long int expected = i - elements / 2;
+		if (!val || expected != *val) {
+			printf("failed test_str_key idx %lld\n", i);
+			if (!val) {
+				printf("no val for key %lld!\n", *key);
+			} else {
+				printf("expected: %lld; acutal %lld; for key %lld!\n", expected, *val, *key);
+			}
+			map_destruct(&map);
+			free(keys);
+			exit(1);
+			return (false);
+		}
+	}
+	free(keys);
 	map_destruct(&map);
 	return (true);
 }
@@ -476,7 +547,6 @@ bool	test_str_keys(long long int elements) {
 	long long int	key_conflicts = 0;
 	for (long long int i = 0; i < elements; i++) {
 		size_t	buff_size = 30;
-	//print_map(&map);
 		char			*key = malloc(sizeof(char) * buff_size);
 		long long int	*val = malloc(sizeof(long long int));
 		long long int	key_int = ((long long)rand() << 32) | (long long)rand();
@@ -491,10 +561,7 @@ bool	test_str_keys(long long int elements) {
 	}
 	if (key_conflicts > elements / 100) {
 		printf("key conflicts(%lld) way too sus, check test logic!\n", key_conflicts);
-		map_destruct(&map);
-		free(keys);
-		exit(1);
-		return (false);
+		assert(0);
 	}
 
 	for (long long int i = 0; i < elements; i++) {
@@ -518,7 +585,6 @@ bool	test_str_keys(long long int elements) {
 		}
 	}
 	free(keys);
-	print_map(&map);
 	map_destruct(&map);
 	return (true);
 }
@@ -531,12 +597,23 @@ int	main(void) {
 #else
 	printf("in debug mode\n");
 #endif
-	if (!test_basic(10000)) {
+	long long int n = 10000000;
+	time_t	start;
+	time_t	end;
+
+	start = time(0);
+	if (!lld_rdm_keys(n)) {
 		pass = false;
 	}
-	if (!test_str_keys(10000)) {
-		pass = false;
-	}
+
+	//if (!test_basic(n)) {
+	//	pass = false;
+	//}
+	//if (!test_str_keys(n)) {
+	//	pass = false;
+	//}
+	end = time(0);
+	printf("Time taken: %ld seconds\n", end - start);
 	if (pass) {
 		printf("passed all tests\n");
 	} else {
