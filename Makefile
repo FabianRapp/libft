@@ -1,6 +1,8 @@
 NAME	:=	libft.a
-NDEBUG	:= -DNDEBUG
+NDEBUG	:=
+-DNDEBUG
 CFLAGS	:=	-Wall -Wextra -Werror -Ofast -march=native -g -fsanitize=address $(NDEBUG)
+LDFLAGS := -lm $(NDEBUG)
 #-fsanitize=address -g
 CC		:=	cc
 
@@ -38,10 +40,10 @@ SRCS	:=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
 
 OBJS	:=	$(SRCS:%.c=$(OBJ_DIR)%.o)
 
-all: $(DIRS) $(SRCS) $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) ft_map.c -lm
+#all: $(DIRS) $(SRCS) $(OBJS)
+#	$(CC) $(CFLAGS) $(OBJS) ft_map.c $(LDFLAGS)
 
-#all: $(NAME)
+all: $(NAME)
 
 $(NAME): $(DIRS) $(SRCS) $(OBJS)
 	@ar rcs $(NAME) $(OBJS)
