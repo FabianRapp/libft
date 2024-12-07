@@ -1,10 +1,15 @@
 #include "libft.h"
-
+#include "map.h"
 #include <math.h>
 
-#ifndef FT_MAP_INIT_LEN
-# define FT_MAP_INIT_LEN 127
-#endif // FT_MAP_INIT_SIZE
+static int				_try_map_add(t_map *map, void *key, void *value);
+static bool				_too_many_collisions(const t_map *map);
+static void				_map_resize(t_map *map);
+static inline uint64_t	_get_hash(const t_map *map, const void *key);
+static inline int		_default_cmp_keys(const void *key1, const void *key2,
+							const size_t key_size);
+static inline int		_cmp_node_keys(const t_map *map, const t_map_node *node,
+							const void *key);
 
 // only for the this file, small numbers are wrong
 bool	_is_prime(size_t num) {
@@ -32,58 +37,6 @@ size_t _next_prime(size_t n) {
 size_t _next_pseudo_prime(size_t n) {
 	return ((n % 2 == 0) ? (n + 1) : (n + 2));
 }
-
-/* assumes a 64 bit PML4 system */
-typedef struct s_map_node {
-	void			*key;
-	union {
-		void			*value;
-	struct {
-		uintptr_t	ptr_mask : 48;
-		uint16_t	meta_data : 16;
-		};
-	};
-}	__attribute__((aligned(16))) t_map_node;
-
-#define MAP_NODE_GET_VAL_PTR(node) \
-	((void *)(((((uintptr_t)1) << 47) - 1) & node.ptr_mask))
-
-struct map_args {
-	uint32_t	key_size;
-	int			(*cmp_keys)(const void *key1, const void *key2);
-	uint64_t	(*hash)(const void *key);
-	void		(*free_value)(void *value);
-	void		(*free_key)(void *key);
-};
-
-typedef struct {
-	uint32_t	key_size;
-	uint32_t	buf_len;
-	int			(*cmp_keys_fn)(const void *, const void *);
-	t_map_node	*buf;
-	/* Total size = buf_len * (sizeof(t_map_node))*/
-	uint64_t	(*hash_fn)(const void *val);
-	void		(*free_value_fn)(void *);
-	void		(*free_key_fn)(void *);
-	size_t		element_count;
-	size_t		collision_count;
-} __attribute__((aligned(CACHE_LINE_SIZE)))	t_map;
-
-t_map					map_new(struct map_args);
-void					*map_get(t_map *map, const void *key);
-int						map_add(t_map *map, void *key, void *value);
-void					map_destruct(t_map *map);
-int						default_cmp_str_keys(const char *key1, const char *key2);
-uint64_t				default_hash_str_fn(const char *key);
-
-static int				_try_map_add(t_map *map, void *key, void *value);
-static bool				_too_many_collisions(const t_map *map);
-static void				_map_resize(t_map *map);
-static inline uint64_t	_get_hash(const t_map *map, const void *key);
-static inline int		_default_cmp_keys(const void *key1, const void *key2,
-							const size_t key_size);
-static inline int		_cmp_node_keys(const t_map *map, const t_map_node *node,
-							const void *key);
 
 void	print_map(const t_map *map) {
 	if (!map) {
@@ -194,8 +147,6 @@ int	default_cmp_str_keys(const char *key1, const char *key2) {
 	return (strcmp(key1, key2));
 }
 
-
-
 /*
 Arguments:
  * struct map_args:
@@ -235,7 +186,6 @@ Error handeling (across all map functions):
 	1. sets errno on malloc error (leaves the errno set by malloc and returns
 		after freeing the entire map)
 	2. map becomes totaly invalid on internal malloc fail
-	
 */
 t_map	map_new(struct map_args args) {
 	t_map	map = {

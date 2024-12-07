@@ -1,6 +1,6 @@
 NAME	:=	libft.a
 NDEBUG	:=
--DNDEBUG
+#-DNDEBUG
 CFLAGS	:=	-Wall -Wextra -Werror -Ofast -march=native -g -fsanitize=address $(NDEBUG)
 LDFLAGS := -lm $(NDEBUG)
 #-fsanitize=address -g

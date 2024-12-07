@@ -23,6 +23,7 @@
 # include <string.h>
 # include <errno.h>
 # include "libft_macros.h"
+# include "map.h"
 
 /**************************   BASIC C FUNCTIONS   ***************************/
 int		ft_is_charset(int c, char *set);
@@ -180,6 +181,16 @@ char	**ft_split_wildcards(char const *s);
 /**************************   CUB3D ADDITIONS   ******************************/
 bool	arr_append(void **arr, void *new_data, int data_size, int old_arr_len);
 void	ft_free(void **ptr);
+
+
+/*****************************   HASH MAP ************************************/
+
+t_map		map_new(struct map_args);
+void		*map_get(t_map *map, const void *key);
+int			map_add(t_map *map, void *key, void *value);
+void		map_destruct(t_map *map);
+int			default_cmp_str_keys(const char *key1, const char *key2);
+uint64_t	default_hash_str_fn(const char *key);
 
 /*****************************   ANSI ESPCAPES  ******************************/
 
