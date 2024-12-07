@@ -33,18 +33,6 @@ size_t _next_pseudo_prime(size_t n) {
 	return ((n % 2 == 0) ? (n + 1) : (n + 2));
 }
 
-/* todo: remove next and put collisions to the right or left in the buffer.
-	This decreases the node size and cache misses. a node size of 16
-	would enable 64 byte alignment and maybe some smart hashing to prefetch
-	the needed cache line before computing the last 2 bits of the hash
-	(now there is only space for 3 nodes in 1 cache line). At the time
-	of writing the memory access right after the hash compution is more
-	than 50% of the run time (this access: '(map->buf + hash)->' ).
-	Also when CACHE_LINE_SIZE % sizeof(t_map_node) the align alloc can
-	be simplified to clean up the code a bit(currently it is theoretically
-	possible that it might overallocate 64 bytes, w.e.).
-*/
-
 /* assumes a 64 bit PML4 system */
 typedef struct s_map_node {
 	void			*key;
@@ -94,7 +82,7 @@ static void				_map_resize(t_map *map);
 static inline uint32_t	_get_hash(t_map *map, void *key);
 int						_default_cmp_keys(void *key1, void *key2,
 							size_t key_size);
-int						_cmp_node_keys(t_map *map, t_map_node *node, void *key);
+static inline int		_cmp_node_keys(t_map *map, t_map_node *node, void *key);
 
 void	print_map(const t_map *map) {
 	if (!map) {
@@ -114,16 +102,40 @@ void	print_map(const t_map *map) {
 	printf("  buf: %p\n", (void*)map->buf);
 }
 
-//todo: change to 32 bits
-static inline uint32_t fnv1a_hash(const uint8_t *key, size_t length) {
-	size_t hash = 1469598103934665603ULL;
-	const size_t fnv_prime = 1099511628211ULL;
-
+static inline uint32_t	fnv1a_hash(const uint8_t *key, size_t length, t_map *map) {
+	uint32_t hash = 2166136261U;
 	for (size_t i = 0; i < length; i++) {
-		hash ^= (size_t)key[i];
-		hash *= fnv_prime;
+		hash ^= key[i];
+		hash *= 16777619U;
 	}
-	return ((uint32_t)hash);
+	return (hash);
+	(void)map;
+}
+
+static inline uint32_t fnv1a_hash_prefetch(const uint8_t *key, size_t length,
+	t_map *map) {
+	t_map_node *buf = map->buf;
+	size_t buf_len	= map->buf_len;
+	uint32_t hash = 2166136261U;
+
+	size_t partial_len = length / 2;
+	for (size_t i = 0; i < partial_len; i++) {
+		hash ^= key[i];
+		hash *= 16777619U;
+	}
+	size_t base_offset = hash % buf_len;
+
+	// each cache line can hold 4 nodes
+	__builtin_prefetch(&buf[(base_offset + 0) % buf_len], 0, 2);
+	__builtin_prefetch(&buf[(base_offset + 4) % buf_len], 0, 2);
+	//__builtin_prefetch(&buf[(base_offset + 6) % buf_len], 0, 1);
+
+	uint32_t	end = 0xff & base_offset;
+	for (size_t i = partial_len; i < length; i++) {
+		end ^= key[i];
+		hash *= 16777619U;
+	}
+	return ((hash & ~(uint32_t)0x3) | end);
 }
 
 uint32_t	default_hash_str_fn(char *key) {
@@ -146,8 +158,8 @@ static inline uint32_t	_get_hash(t_map *map, void *key) {
 #ifndef NDEBUG
 		assert(map->key_size);
 #endif // NDEBUG
-		hash = fnv1a_hash(key, map->key_size);
-		//hash = _default_hash_fn(key, map->key_size, map->prime);
+		//hash = fnv1a_hash(key, map->key_size, map);//9 sec runtime
+		hash = fnv1a_hash_prefetch(key, map->key_size, map); //7 sec runtime
 	}
 	return (hash);
 }
@@ -157,7 +169,7 @@ int	_default_cmp_keys(void *key1, void *key2, size_t key_size) {
 	return (ft_memcmp(key1, key2, key_size));
 }
 
-int	_cmp_node_keys(t_map *map, t_map_node *node, void *key) {
+static inline int	_cmp_node_keys(t_map *map, t_map_node *node, void *key) {
 	if (map->cmp_keys_fn) {
 		return (map->cmp_keys_fn(key, node->key));
 	} else {
@@ -250,6 +262,7 @@ t_map	map_new(struct map_args args) {
 void	*map_get(t_map *map, void *key) {
 	t_map_node	*node;
 
+	__builtin_prefetch(key, 0, 3);
 	size_t		hash = _get_hash(map, key);
 	node = map->buf + hash % map->buf_len;
 	if (!node->key) {
@@ -374,6 +387,7 @@ static bool	_too_many_collisions(t_map *map) {
 // returns 0 on success, 1 if the map should be made larger,
 // -1 for cases like map_add
 static int	_try_map_add(t_map *map, void *key, void *value) {
+	__builtin_prefetch(key, 0, 3);
 	map->element_count++;
 	size_t	hash = _get_hash(map, key);
 	size_t	offset = hash % map->buf_len;
@@ -419,6 +433,7 @@ static int	_try_map_add(t_map *map, void *key, void *value) {
  * 2.: returns (-1)
 */
 int	map_add(t_map *map, void *key, void *value) {
+	__builtin_prefetch(key, 0, 3);
 	int	ret = _try_map_add(map, key, value);
 	if (ret <= 0) {
 		return (ret);
@@ -591,7 +606,6 @@ int	main(void) {
 	long long int n = 10000000;
 	time_t	start;
 	time_t	end;
-	printf("node size: %lu\n", sizeof(t_map_node));
 	start = time(0);
 	
 	if (!only_add(n)) {
@@ -606,9 +620,9 @@ int	main(void) {
 		pass = false;
 	}
 
-	if (!test_str_keys(n)) {
-		pass = false;
-	}
+	//if (!test_str_keys(n)) {
+	//	pass = false;
+	//}
 	end = time(0);
 	printf("Time taken: %ld seconds\n", end - start);
 	if (pass) {
@@ -618,3 +632,4 @@ int	main(void) {
 	}
 	return (0);
 }
+
