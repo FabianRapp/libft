@@ -102,6 +102,7 @@ void	print_map(const t_map *map) {
 	printf("  buf: %p\n", (void*)map->buf);
 }
 
+/*
 static inline uint32_t	fnv1a_hash(const uint8_t *key, size_t length, t_map *map) {
 	uint32_t hash = 2166136261U;
 	for (size_t i = 0; i < length; i++) {
@@ -111,6 +112,7 @@ static inline uint32_t	fnv1a_hash(const uint8_t *key, size_t length, t_map *map)
 	return (hash);
 	(void)map;
 }
+*/
 
 static inline uint32_t fnv1a_hash_prefetch(const uint8_t *key, size_t length,
 	t_map *map) {
@@ -141,9 +143,7 @@ static inline uint32_t fnv1a_hash_prefetch(const uint8_t *key, size_t length,
 uint32_t	default_hash_str_fn(char *key) {
 	size_t	hash = 1469598103934665603ULL;
 
-#ifndef NDEBUG
-	assert(key);
-#endif // NDEBUG
+	FT_ASSERT(key);
 	for (char c = *key; (c = *key); key++) {
 		hash = (hash << 5) + hash + c;
 	}
@@ -155,9 +155,7 @@ static inline uint32_t	_get_hash(t_map *map, void *key) {
 	if (map->hash_fn) {
 		hash = map->hash_fn(key);
 	} else {
-#ifndef NDEBUG
-		assert(map->key_size);
-#endif // NDEBUG
+		FT_ASSERT(map->key_size);
 		//hash = fnv1a_hash(key, map->key_size, map);//9 sec runtime
 		hash = fnv1a_hash_prefetch(key, map->key_size, map); //7 sec runtime
 	}
@@ -238,20 +236,17 @@ t_map	map_new(struct map_args args) {
 		.free_key_fn = args.free_key ? args.free_key : free,
 	};
 
-#ifndef NDEBUG
-	assert(sizeof(t_map) <= CACHE_LINE_SIZE);
-	assert(sizeof(t_map_node) == 16 && CACHE_LINE_SIZE % 16 == 0);
-#endif
+	FT_ASSERT(sizeof(t_map) <= CACHE_LINE_SIZE);
+	FT_ASSERT(sizeof(t_map_node) == 16 && CACHE_LINE_SIZE % 16 == 0);
+
 	/* might very raly over allocate which is fine */
 	size_t	alloc_size = map.buf_len * sizeof(t_map_node);
 	alloc_size += CACHE_LINE_SIZE - alloc_size % CACHE_LINE_SIZE;
 	map.buf = aligned_alloc((size_t)CACHE_LINE_SIZE, alloc_size);
 	bzero(map.buf, alloc_size);
 
-#ifndef NDEBUG
-	assert(map.key_size || map.hash_fn);
-	assert(map.buf && "Malloc failed");
-#endif
+	FT_ASSERT(map.key_size || map.hash_fn);
+	FT_ASSERT(map.buf && "Malloc failed");
 	return (map);
 }
 
@@ -269,10 +264,8 @@ void	*map_get(t_map *map, void *key) {
 		return (NULL);
 	}
 	while (node->key && _cmp_node_keys(map, node, key)) {
-		assert(node->key);
+		FT_ASSERT(node->key);
 		node++;
-#ifndef NDEBUG
-#endif // NDEBUG
 	}
 	if (node->key) {
 		return (MAP_NODE_GET_VAL_PTR((*node)));
@@ -299,30 +292,26 @@ void	map_destruct(t_map *map) {
 	if (count != map->element_count) {
 		printf("map should have %lu elements, but only %lu were found!\n",
 			map->element_count, count);
-		assert(0 && "wrong element count in freed map");
+		FT_ASSERT(0 && "wrong element count in freed map");
 	}
 #endif
 }
 
 //return 0 on success
 int	_try_move_buf(t_map *map, t_map_node *old_buf, size_t old_len) {
-	assert(!_too_many_collisions(map));
+	FT_ASSERT(!_too_many_collisions(map));
 	for (size_t idx = 0; idx < old_len; idx++) {
 		if (!old_buf[idx].key) {
 			continue ;
 		}
 		int val = _try_map_add(map, old_buf[idx].key,old_buf[idx].value);
-#ifndef NDEBUG
-		assert(val >= 0);
-#endif //NDEBUG
+		FT_ASSERT(val >= 0);
 		if (val > 0) {
 			free(map->buf);
 			return (1);
 		}
 	}
-#ifndef NDEBUG
-	assert(!_too_many_collisions(map));
-#endif
+	FT_ASSERT(!_too_many_collisions(map));
 	free(old_buf);
 	return (0);
 }
@@ -343,9 +332,7 @@ static void	_map_resize(t_map *map) {
 			map->buf = old_buf;
 			map->buf_len = old_len;
 			map_destruct(map);
-#ifndef NDEBUG
-			assert(0 && "malloc fail");
-#endif // NDEBUG
+			FT_ASSERT(0 && "malloc fail");
 			return ;
 		}
 
@@ -355,12 +342,7 @@ static void	_map_resize(t_map *map) {
 			break ;
 		}
 	}
-
-#ifndef NDEBUG
-	if (_too_many_collisions(map)) {
-		assert(0);
-	}
-#endif
+	FT_ASSERT(!_too_many_collisions(map));
 }
 
 /* hard to find bug from before(caused logic chage from min element count to
@@ -392,10 +374,8 @@ static int	_try_map_add(t_map *map, void *key, void *value) {
 	size_t	hash = _get_hash(map, key);
 	size_t	offset = hash % map->buf_len;
 
-#ifndef NDEBUG
-	assert(!_too_many_collisions(map)
+	FT_ASSERT(!_too_many_collisions(map)
 		&& "check condition in _too_many_collisions!");
-#endif //NDEBUG
 
 	if (!map->buf[offset].key || !_cmp_node_keys(map, map->buf + offset, key)) {
 		if (map->buf[offset].key) {
@@ -516,7 +496,7 @@ bool	lld_rdm_keys(long long int elements) {
 	}
 	if (key_conflicts > elements / 100) {
 		printf("key conflicts(%lld) way too sus, check test logic!\n", key_conflicts);
-		assert(0);
+		FT_ASSERT(0);
 	}
 	for (long long int i = 0; i < elements; i++) {
 		long long int	*key = keys[i];
@@ -567,7 +547,7 @@ bool	test_str_keys(long long int elements) {
 	}
 	if (key_conflicts > elements / 100) {
 		printf("key conflicts(%lld) way too sus, check test logic!\n", key_conflicts);
-		assert(0);
+		FT_ASSERT(0);
 	}
 
 	for (long long int i = 0; i < elements; i++) {
