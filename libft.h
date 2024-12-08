@@ -334,4 +334,16 @@ uint64_t	default_hash_str_fn(const char *key);
 #  define FT_ANSI_BLACK_BOLD_UNDERLINE "\033[30;1;4m"
 # endif
 
+#ifndef FT_ANSI_BOLD
+#define FT_ANSI_BOLD "\x1b[1m"
+#endif // ANSI_BOLD
+
+#ifndef FT_ANSI_UNDERLINE
+#define FT_ANSI_UNDERLINE "\x1b[4m"
+#endif // ANSI_UNDERLINE
+
+#ifndef FT_ANSI_ITALIC
+#define FT_ANSI_ITALIC "\x1b[3m"
+#endif // ANSI_ITALIC
+
 #endif //LIBFT_H
