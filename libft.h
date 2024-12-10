@@ -59,7 +59,7 @@ int		ft_atoi(const char *str);
 void	*ft_calloc(size_t count, size_t size);
 char	*ft_strdup(const char *s1);
 char	*ft_strndup(const char *s1, size_t max_size);
-void	ft_free_2darr(char **array);
+void	free_2d_arr(char **array);
 size_t	ft_strarr_size(char **ptr);
 
 /**************************   Ilies (iziane)   ***************************/

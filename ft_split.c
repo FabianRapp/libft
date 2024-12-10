@@ -80,7 +80,7 @@ char	**ft_split(char const *s, char c)
 			s++;
 		s_increase = append_next_sub(str_ar + i, s, c);
 		if (s_increase == -1)
-			return (ft_free_2darr(str_ar), NULL);
+			return (free_2d_arr(str_ar), NULL);
 		if (s_increase)
 			i++;
 		s += s_increase;

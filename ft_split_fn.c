@@ -80,7 +80,7 @@ char	**ft_split_fn(char const *s, bool is_sep(char))
 			s++;
 		s_increase = append_next_sub_fn(str_ar + i, s, is_sep);
 		if (s_increase == -1)
-			return (ft_free_2darr(str_ar), NULL);
+			return (free_2d_arr(str_ar), NULL);
 		if (s_increase)
 			i++;
 		s += s_increase;

@@ -59,7 +59,7 @@ char	**ft_split_wildcards(char const *wildcard_str)
 		loop_while_the_four(&i, wildcard_str);
 		s_increase = append_next_sub_wildcards(str_ar + i2, wildcard_str + i);
 		if (s_increase == -1)
-			return (ft_free_2darr(str_ar), NULL);
+			return (free_2d_arr(str_ar), NULL);
 		if (s_increase)
 		{
 			i2++;

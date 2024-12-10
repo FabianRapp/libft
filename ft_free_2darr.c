@@ -12,7 +12,7 @@
 
 #include "libft.h"
 
-void	ft_free_2darr(char **array)
+void	free_2d_arr(char **array)
 {
 	int	i;
 
