@@ -161,6 +161,7 @@ void	free_que(t_queue **queue);
 /*****************************   FT_SORT  ************************************/
 
 bool	swap_float(void *a, void *b);
+bool	swap_ints(void *a, void *b);
 void	ft_sort(void *arr, size_t data_size, size_t arr_len,
 			bool (*do_swap)(void *, void *));
 
