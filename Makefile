@@ -36,7 +36,7 @@ SRCS	:=	ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
 			ft_dynamic_arr.c ft_queue.c \
 			ft_assert.c ft_free_2d.c ft_count_word.c atod.c \
 			ft_put_float.c ft_str_to_float.c \
-			ft_sort.c
+			ft_sort.c timeval.c
 
 OBJS	:=	$(SRCS:%.c=$(OBJ_DIR)%.o)
 

@@ -160,16 +160,18 @@ void	free_que(t_queue **queue);
 
 /*****************************   FT_SORT  ************************************/
 
-bool	swap_float(void *a, void *b);
-bool	swap_ints(void *a, void *b);
+bool	cmp_float(const void *a, const void *b);
+bool	cmp_ints(const void *a, const void *b);
 void	ft_sort(void *arr, size_t data_size, size_t arr_len,
-			bool (*do_swap)(void *, void *));
+			bool (*cmp)(const void *, const void *));
 
 /*****************************   OTHERS  *************************************/
 
 void	ft_assert(bool cond, char *file, int line, char *msg);
 float	str_to_float(char *str);
 int		ft_put_float(int fd, float nb, size_t precision);
+struct timeval	add_timeval(struct timeval a, struct timeval b);
+struct timeval	sub_timeval(struct timeval a, struct timeval b);
 
 /**************************   MINISHELL ADDITIONS   **************************/
 bool	contains_non_white_spcace(char *str);
